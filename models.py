@@ -69,7 +69,7 @@ class Coarse(nn.Module):
             pred_length = torch.tensor([len(word) for word in words], dtype=torch.int64, device=config.device)
             pred_words = [torch.cat((pred_words[idx], words[idx])) for idx in range(coarse_data.size(1))]
 
-            coarse_hidden = self.coarse_enc(pred_words, coarse_length[1:-1].sum(0) + pred_length)
+            coarse_hidden = self.coarse_enc(pred_words, pred_length if len(coarse_length[1:-1]) == 0 else coarse_length[1:-1].sum(0) + pred_length)
             total_length = (coarse_length[1:-1].sum(0) + pred_length).sum()
         return coarse_hidden, loss / total_length.item()
 
