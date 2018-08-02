@@ -57,6 +57,7 @@ class Coarse(nn.Module):
             coarse_hidden = self.coarse_enc(pred_words, coarse_length[1:].sum(0))
             total_length = coarse_length[1:].sum()
         elif config.mode == 'test':
+            i = 0
             for i in range(final_session_o.size(1) - 1):
                 words = [coarse_data[i + 1][idx][:coarse_length[i + 1][idx]] for idx in
                          range(coarse_data.size(1))]  # batch teacher forcing?

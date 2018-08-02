@@ -91,17 +91,20 @@ def calc_valid_loss(data_loader, criteria, model):
     model.dec.set_teacher_forcing(True)
     valid_loss, num_words = 0, 0
 
-    for i_batch, sample_batch in enumerate(tqdm(data_loader)):
-        trainData = sample_batch[:-1]
-        gold = sample_batch[-1]
-        preds, lmpreds = model(trainData, gold)
+    for i_batch, (syllableData, syllableLength, coarseData, coarseLength) in enumerate(tqdm(data_loader)):
+        gold = syllableData[-1]
+        if config.model == 'mrrnn':
+            preds, coarse_loss = model(syllableData, syllableLength, coarseData, coarseLength)
+        else:
+            preds = model(syllableData, syllableLength, coarseData, coarseLength)
 
         preds = preds[:, :-1, :].contiguous().view(-1, preds.size(2))
         gold = gold[:, 1:].contiguous().view(-1)
-        # do not include the lM loss, exp(loss) is perplexity
         loss = criteria(preds, gold)
-        num_words += gold.ne(0).long().sum().data[0]
+        target_length = syllableLength[-1].sum().item()
         valid_loss += loss.item()
+
+        num_words += target_length
 
     model.train()
     model.dec.set_teacher_forcing(cur_tc)
