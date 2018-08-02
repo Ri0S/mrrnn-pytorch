@@ -230,7 +230,7 @@ class Decoder(nn.Module):
         siz, seq_len = x.size(0), x.size(1)
 
         if len(input) == 3 and beam is None:
-            dec_o = self.do_decode(siz, 20, ses_encoding, None, None)
+            dec_o = self.do_decode(siz, length, ses_encoding, None, None)
 
         elif self.teacher_forcing:
             dec_o = self.do_decode_tc(ses_encoding, x, length)

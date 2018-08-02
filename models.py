@@ -27,7 +27,7 @@ class Seq2Seq(nn.Module):
 
         elif config.mode == 'test':
             preds = self.dec((final_session_o[:, -1, :].unsqueeze(1), coarse_data[-1, :, :], None),
-                             None)
+                             60)
 
         if config.model.lower() == 'mrrnn':
             return preds, loss
@@ -69,7 +69,7 @@ class Coarse(nn.Module):
                 # words = [coarse_data[i + 1][idx][:coarse_length[i + 1][idx]] for idx in range(coarse_data.size(1))]  # batch teacher forcing?
                 pred_words = [torch.cat((pred_words[idx], words[idx])) for idx in range(coarse_data.size(1))]
             words = self.dec((final_session_o[:, -1, :].unsqueeze(1), coarse_data[-1, :, :], None),
-                             coarse_length[i + 1, :])
+                             20)
             words = [words[i][:21 if len(words.eq(3)[i].ne(0).nonzero()) == 0 else
             words.eq(3)[i].ne(0).nonzero()[0].item() + 1] for i in range(words.size(0))]
             pred_length = torch.tensor([len(word) for word in words], dtype=torch.int64, device=config.device)
