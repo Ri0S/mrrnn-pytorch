@@ -39,6 +39,7 @@ class BaseEncoder(nn.Module):
     def forward(self, inp, length):
         length, indices = length.sort(descending=True)
         x = inp.index_select(0, indices)
+#        x = inp#
 
         bt_siz, seq_len = x.size(0), x.size(1)
 
@@ -159,7 +160,7 @@ class Decoder(nn.Module):
     def do_decode_tc(self, ses_encoding, target, length):
         length, indices = length.sort(descending=True)
         x = target.index_select(0, indices)
-        x = target
+ #       x = target
 
         target_emb = self.embed_in(x)
         target_emb = self.drop(target_emb)
