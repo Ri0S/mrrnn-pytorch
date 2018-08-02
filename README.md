@@ -24,4 +24,5 @@ input_length.txt: length of n(>=2) turns dialog
 
 ## Training
 python train.py --mode=train
+
 see configs.py for detail option
