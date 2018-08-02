@@ -64,13 +64,13 @@ def train(model):
         print('total loss:', tr_loss)
         print()
         if config.succeed:
-            torch.save(model.state_dict(), 'emb' + str(config.embedding_size) + '_' +
+            torch.save(model.state_dict(), './model/' + config.model + '_emb' + str(config.embedding_size) + '_' +
                                            'enc' + str(config.encoder_hidden_size) + '_' +
                                            'cxt' + str(config.context_hidden_size) + '_' +
                                            'dec' + str(config.decoder_hidden_size) + '_' +
                                            str(int(config.name[-3:]) + i + 1).zfill(3))
         else:
-            torch.save(model.state_dict(), 'emb' + str(config.embedding_size) + '_' +
+            torch.save(model.state_dict(), './model/' + config.model + '_emb' + str(config.embedding_size) + '_' +
                                            'enc' + str(config.encoder_hidden_size) + '_' +
                                            'cxt' + str(config.context_hidden_size) + '_' +
                                            'dec' + str(config.decoder_hidden_size) + '_' +
@@ -107,3 +107,4 @@ def calc_valid_loss(data_loader, criteria, model):
     model.dec.set_teacher_forcing(cur_tc)
 
     return valid_loss / int(num_words)
+

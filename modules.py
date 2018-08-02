@@ -189,18 +189,18 @@ class Decoder(nn.Module):
         else:
             return hid_o_mx
         
-    def do_decode(self, siz, seq_len, ses_encoding, target):
+    def do_decode(self, siz, seq_len, ses_encoding, target, length):
         ses_inf_vec = self.ses_inf(ses_encoding)
         ses_encoding = self.tanh(self.ses_to_dec(ses_encoding))
         hid_n, preds, lm_preds = ses_encoding, [], []
         
         hid_n = hid_n.view(self.num_lyr, siz, self.hid_size)
-        inp_tok = torch.ones(siz, 1, device=config.device, dtype=torch.int64)
-
+        inp_tok = torch.ones(siz, 1, device=config.device, dtype=torch.int64).new_full((siz, 1), 5)
+        out_words = torch.ones(siz, 1, device=config.device, dtype=torch.int64).new_full((siz, 1), 5)
         for i in range(seq_len):
             # initially tc_ratio is 1 but then slowly decays to 0 (to match inference time)
-            if torch.randn(1)[0] < self.tc_ratio:
-                inp_tok = target[:, i].unsqueeze(1)
+            # if torch.randn(1)[0] < self.tc_ratio:
+            #     inp_tok = target[:, i].unsqueeze(1)
             
             inp_tok_vec = self.embed_in(inp_tok)
             emb_inf_vec = self.emb_inf(inp_tok_vec)
@@ -214,11 +214,13 @@ class Decoder(nn.Module):
             hid_o_mx = max_out(total_hid_o)
 
             hid_o_mx = self.embed_out(hid_o_mx)
-            preds.append(hid_o_mx)
+            # preds.append(hid_o_mx)
             _, inp_tok = torch.max(hid_o_mx, dim=2)
+            out_words = torch.cat((out_words, inp_tok), 1)
 
-        dec_o = torch.cat(preds, 1)
-        return dec_o
+        # dec_o = torch.cat(preds, 1)
+        # return dec_o
+        return out_words
 
     def forward(self, input, length):
         if len(input) == 1:
@@ -228,15 +230,16 @@ class Decoder(nn.Module):
             ses_encoding, x = input
         else:
             ses_encoding, x, beam = input
-            
-        if use_cuda:
-            x = x.cuda()
+
         siz, seq_len = x.size(0), x.size(1)
-        
-        if self.teacher_forcing:
+
+        if len(input) == 3 and beam is None:
+            dec_o = self.do_decode(siz, 20, ses_encoding, None, None)
+
+        elif self.teacher_forcing:
             dec_o = self.do_decode_tc(ses_encoding, x, length)
         else:
-            dec_o = self.do_decode(siz, seq_len, ses_encoding, x)
+            dec_o = self.do_decode(siz, seq_len, ses_encoding, x, length)
             
         return dec_o
 
@@ -251,3 +254,4 @@ class Decoder(nn.Module):
     
     def get_tc_ratio(self):
         return self.tc_ratio
+

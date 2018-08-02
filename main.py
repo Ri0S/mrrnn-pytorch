@@ -22,8 +22,9 @@ def main():
         test_dataset = MovieTriples('test', config.batch_size)
 
         test_dataloader = DataLoader(test_dataset, 1, shuffle=True, collate_fn=custom_collate_fn)
-        generator.inference_beam(test_dataloader, model, config.i2c, config)
+        generator.inference(test_dataloader, model)
         # chat_inference_beam(model, inv_dict, config)
 
 
 main()
+

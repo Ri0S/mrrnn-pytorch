@@ -1,4 +1,3 @@
-from configs import config
 from modules import *
 
 
@@ -45,13 +44,31 @@ class Coarse(nn.Module):
         qu_seq = self.base_enc(us.view(-1, us.size(2)), us_length.view(-1)).view(us.size(0), us.size(1), -1)
         final_session_o = self.ses_enc(qu_seq, None)
         loss = 0
-        pred_words = [torch.tensor([], dtype=torch.int64) for _ in range(coarse_data.size(1))]
-        for i in range(final_session_o.size(1)):  # sequence
-            preds, words = self.dec((final_session_o[:, i:i + 1, :], coarse_data[i + 1, :, :]), coarse_length[i + 1, :])
-            loss += self.criteria(preds.view(-1, config.word_size), coarse_data[i+1].contiguous().view(-1))
-            words = [words[idx][:coarse_length[i+1][idx]] for idx in range(coarse_data.size(1))]  # batch
+        pred_words = [torch.tensor([], device=config.device, dtype=torch.int64) for _ in range(coarse_data.size(1))]
+        if config.mode == 'train':
+            for i in range(final_session_o.size(1)):  # sequence
+                preds, words = self.dec((final_session_o[:, i:i + 1, :], coarse_data[i + 1, :, :]),
+                                        coarse_length[i + 1, :])
+                loss += self.criteria(preds.view(-1, config.word_size), coarse_data[i + 1].contiguous().view(-1))
+                # words = [words[idx][:coarse_length[i + 1][idx]] for idx in range(coarse_data.size(1))]  # batch
+                words = [coarse_data[i+1][idx][:coarse_length[i + 1][idx]] for idx in range(coarse_data.size(1))]  # batch teacher forcing?
+                pred_words = [torch.cat((pred_words[idx], words[idx])) for idx in range(coarse_data.size(1))]
+
+            coarse_hidden = self.coarse_enc(pred_words, coarse_length[1:].sum(0))
+            total_length = coarse_length[1:].sum()
+        elif config.mode == 'test':
+            for i in range(final_session_o.size(1) - 1):
+                words = [coarse_data[i + 1][idx][:coarse_length[i + 1][idx]] for idx in
+                         range(coarse_data.size(1))]  # batch teacher forcing?
+                pred_words = [torch.cat((pred_words[idx], words[idx])) for idx in range(coarse_data.size(1))]
+            words = self.dec((final_session_o[:, -1, :].unsqueeze(1), coarse_data[-1, :, :], None),
+                             coarse_length[i + 1, :])
+            words = [words[i][:21 if len(words.eq(3)[i].ne(0).nonzero()) == 0 else
+            words.eq(3)[i].ne(0).nonzero()[0].item() + 1] for i in range(words.size(0))]
+            pred_length = torch.tensor([len(word) for word in words], dtype=torch.int64, device=config.device)
             pred_words = [torch.cat((pred_words[idx], words[idx])) for idx in range(coarse_data.size(1))]
 
-        coarse_hidden = self.coarse_enc(pred_words, coarse_length[1:].sum(0))
+            coarse_hidden = self.coarse_enc(pred_words, coarse_length[1:-1].sum(0) + pred_length)
+            total_length = (coarse_length[1:-1].sum(0) + pred_length).sum()
+        return coarse_hidden, loss / total_length.item()
 
-        return coarse_hidden, loss / coarse_length[1:].sum().item()

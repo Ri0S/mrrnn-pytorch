@@ -85,7 +85,7 @@ class MovieTriples(Dataset):
                         for i in range(len(char_data)):
                             for j in range(tl + 2):
                                 char_data[i][j].extend([0 for _ in range(char_maxlen - len(char_data[i][j]))])
-                                word_data[i][j].extend([0 for _ in range(word_maxlen - len(char_data[i][j]))])
+                                word_data[i][j].extend([0 for _ in range(word_maxlen - len(word_data[i][j]))])
                         self.cds.append(char_data)
                         self.wds.append(word_data)
                         self.clength.append(chardLength)

@@ -83,7 +83,7 @@ def get_config(parse=True, **optional_kwargs):
     parser.add_argument('--beam_size', type=int, default=1)
 
     # Model
-    parser.add_argument('--saved_model', type=str, default='000')
+    parser.add_argument('--saved_model', type=str, default='mrrnn_emb300_enc400_cxt400_dec800_000')
     parser.add_argument('--num_layers', type=int, default=1)
     parser.add_argument('--bidirectional', type=str2bool, default=True)
     parser.add_argument('--embedding_size', type=int, default=300)
