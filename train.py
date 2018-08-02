@@ -78,7 +78,7 @@ def train(model):
 
         vl_loss = calc_valid_loss(valid_dataloader, criteria, model)
         print("Training loss {}  Valid loss {}".format(tr_loss / num_words, vl_loss))
-        if vl_loss < best_vl_loss or config.toy:
+        if vl_loss < best_vl_loss:
             best_vl_loss = vl_loss
             patience = 0
         else:

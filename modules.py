@@ -159,10 +159,10 @@ class Decoder(nn.Module):
     def do_decode_tc(self, ses_encoding, target, length):
         length, indices = length.sort(descending=True)
         x = target.index_select(0, indices)
+        x = target
 
         target_emb = self.embed_in(x)
         target_emb = self.drop(target_emb)
-        # below will be used later as a crude approximation of an LM
         emb_inf_vec = self.emb_inf(target_emb)
         target_emb = pack_padded_sequence(target_emb, length, True)
 
@@ -175,7 +175,6 @@ class Decoder(nn.Module):
         _, reverse_indices = indices.sort()
         hid_o = hid_o[0].index_select(0, reverse_indices)
 
-        # linear layers not compatible with PackedSequence need to unpack, will be 0s at padded timesteps!
         
         dec_hid_vec = self.dec_inf(hid_o)
         ses_inf_vec = self.ses_inf(ses_encoding)
@@ -195,13 +194,9 @@ class Decoder(nn.Module):
         hid_n, preds, lm_preds = ses_encoding, [], []
         
         hid_n = hid_n.view(self.num_lyr, siz, self.hid_size)
-        inp_tok = torch.ones(siz, 1, device=config.device, dtype=torch.int64).new_full((siz, 1), 5)
-        out_words = torch.ones(siz, 1, device=config.device, dtype=torch.int64).new_full((siz, 1), 5)
+        inp_tok = torch.ones(siz, 1, device=config.device, dtype=torch.int64).new_full((siz, 1), 2)
+        out_words = torch.ones(siz, 1, device=config.device, dtype=torch.int64).new_full((siz, 1), 2)
         for i in range(seq_len):
-            # initially tc_ratio is 1 but then slowly decays to 0 (to match inference time)
-            # if torch.randn(1)[0] < self.tc_ratio:
-            #     inp_tok = target[:, i].unsqueeze(1)
-            
             inp_tok_vec = self.embed_in(inp_tok)
             emb_inf_vec = self.emb_inf(inp_tok_vec)
             

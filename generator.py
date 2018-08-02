@@ -29,11 +29,11 @@ def inference(dataloader, model):
     for i_batch, (syllableData, syllableLength, coarseData, coarseLength) in enumerate(tqdm(dataloader)):
         gold = syllableData[-1]
         if config.model == 'mrrnn':
-            preds, coarse_loss = model(syllableData, syllableLength, coarseData, coarseLength)
+            pred_words, coarse_loss = model(syllableData, syllableLength, coarseData, coarseLength)
         else:
-            preds = model(syllableData, syllableLength, coarseData, coarseLength)
+            pred_words = model(syllableData, syllableLength, coarseData, coarseLength)
 
-        pred_words = preds.max(2)[1]
+        # pred_words = preds.max(2)[1]
         pred_words = [pred_words[i][:pred_words.size(1) if len(pred_words.eq(3)[i].ne(0).nonzero()) == 0 else
         pred_words.eq(3)[i].ne(0).nonzero()[0].item() + 1] for i in range(pred_words.size(0))]
 
