@@ -46,7 +46,7 @@ def inference(dataloader, model):
                 inp = ''.join([config.i2c[a.item()] for a in inps[i][j][0:inps_length[i][j]]][1:-1]).replace('^', ' ') + '\n'
                 print(inp, end='')
                 fout.write(inp)
-            inp = 'gold: '.join([config.i2c[a.item()] for a in inps[i][inps.size(1) - 1][0:inps_length[i][inp.size(1) - 1]]][1:-1]).replace('^', ' ') + '\n'
+            inp = 'gold: '.join([config.i2c[a.item()] for a in inps[i][inps.size(1) - 1][0:inps_length[i][inps.size(1) - 1]]][1:-1]).replace('^', ' ') + '\n'
             print(inp, end='')
             fout.write(inp)
             pred = 'pred: '.join([config.i2c[a.item()] for a in pred_words[i]].replace('^', ' ') + '\n\n')
