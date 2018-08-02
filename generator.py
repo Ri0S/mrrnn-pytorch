@@ -22,7 +22,7 @@ def inference(dataloader, model):
     cur_tc = model.dec.get_teacher_forcing()
     model.dec.set_teacher_forcing(True)
     fout = open(config.saved_model + "_beam" + str(config.beam_size) + "_result.txt", 'w', encoding='utf-8')
-    model.load_state_dict(torch.load(config.saved_model))
+    model.load_state_dict(torch.load('./model/' + config.saved_model))
 
     model.eval()
 
